@@ -1,44 +1,80 @@
 const rp = require('request-promise');
-const storage = require('node-persist').init({
-	dir: require('os').homedir() + '/.node/ezt/data/'
-});
+
+const storage = require('node-persist')
 
 const applicationId = '568c51e7f1677ebd18d685f6'
 
 module.exports = {
-	storeLocal: storeLocal,
-	authenticateUser: authenticateUser
+	authenticateUser: authenticateUser,
+	getTaskList: getTaskList,
+	storage: storage
 }
 
 function storeLocal(key, value) {
-
 }
 
 function authenticateUser(email, password) {
-	return rp.post(`https://api.knack.com/v1/applications/${applicationId}/session`, {
-		method: 'POST',
+	return storage.get('email')
+		.then(storedEmail => {
+			console.log(storedEmail, email)
+			if (email === storedEmail) {
+				console.log('Found user in storage')
+				return storage.get('token');
+			} else {
+				return rp.post(`https://api.knack.com/v1/applications/${applicationId}/session`, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: {
+						email: email,
+						password: password
+					},
+					json: true
+				})
+					.then(auth => {
+						storage.set('email', email).then(data => console.log('wrote email to storage'));
+						storage.set('token', auth.session.user.token).then(data => console.log('wrote token to storage'))
+						return auth.session.user.token
+					})
+					.catch(err => {
+						throw err
+					})
+			}
+		})
+
+}
+
+function getTaskList(token) {
+	return rp.get('https://api.knack.com/v1/pages/scene_1/views/view_16/records', {
+		method: 'GET',
 		headers: {
-			'Content-Type': 'application/json'
-		},
-		body: {
-			email: email,
-			password: password
+			'X-Knack-Application-Id' : applicationId,
+			'X-Knack-REST-API-KEY' : 'knack',
+			'Authorization' : token,
 		},
 		json: true
 	})
-	.then(auth => {
-		storage.set('user', email);
-		storage.set('token', auth.session.user.token)
-		return auth
+	.then(res => {
+		const tasks = []
+		for (let record of res.records) {
+			const task = {}
+			task.dueDate = record.field_4;
+			task.taskId = record.field_286;
+			task.description = record.field_50;
+			task.project = record.field_109_raw[0].identifier;
+			task.milestone = record.field_282_raw[0].identifier;
+			task.budgetHours = record.field_275;
+			task.actualHours = record.field_278;
+			task.status = record.field_5
+			tasks.push(task);
+		}
+		return tasks;
 	})
 	.catch(err => {
-		throw err
+		throw err;
 	})
-}
-
-function getTaskList() {
-	return rp.get()
 }
 
 //authenticateUser('taylor@easyforms.co.nz', 'chlbwvf1');
-
+//getTaskList('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNTk4N2VjMjc0YzcyNDA1ZTJmMGVkOGNlIiwiYXBwbGljYXRpb25faWQiOiI1NjhjNTFlN2YxNjc3ZWJkMThkNjg1ZjYiLCJpYXQiOjE1MDIwODAwNDV9._qbjfnrjMXK6bWZ3SrxfworGVNBfxmC3C2qx3lByakc')
