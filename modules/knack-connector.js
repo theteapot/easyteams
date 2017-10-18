@@ -16,7 +16,6 @@ function storeLocal(key, value) {
 function authenticateUser(email, password) {
 	return storage.get('email')
 		.then(storedEmail => {
-			console.log(storedEmail, email)
 			if (email === storedEmail) {
 				console.log('Found user in storage')
 				return storage.get('token');
@@ -58,7 +57,9 @@ function getTaskList(token) {
 	.then(res => {
 		const tasks = []
 		for (let record of res.records) {
+			console.log(record)
 			const task = {}
+			task.knackId = record.id
 			task.dueDate = record.field_4;
 			task.taskId = record.field_286;
 			task.description = record.field_50;
@@ -69,6 +70,7 @@ function getTaskList(token) {
 			task.status = record.field_5
 			tasks.push(task);
 		}
+		storage.set('tasks', tasks)
 		return tasks;
 	})
 	.catch(err => {
@@ -76,5 +78,10 @@ function getTaskList(token) {
 	})
 }
 
+function putStartTime(token, taskId) {
+
+}
+
 //authenticateUser('taylor@easyforms.co.nz', 'chlbwvf1');
 //getTaskList('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNTk4N2VjMjc0YzcyNDA1ZTJmMGVkOGNlIiwiYXBwbGljYXRpb25faWQiOiI1NjhjNTFlN2YxNjc3ZWJkMThkNjg1ZjYiLCJpYXQiOjE1MDIwODAwNDV9._qbjfnrjMXK6bWZ3SrxfworGVNBfxmC3C2qx3lByakc')
+//putStartTime('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNTk4N2VjMjc0YzcyNDA1ZTJmMGVkOGNlIiwiYXBwbGljYXRpb25faWQiOiI1NjhjNTFlN2YxNjc3ZWJkMThkNjg1ZjYiLCJpYXQiOjE1MDIwODAwNDV9._qbjfnrjMXK6bWZ3SrxfworGVNBfxmC3C2qx3lByakc', )
