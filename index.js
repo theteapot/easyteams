@@ -37,20 +37,19 @@ ezt
 /* MAIN PROCESS */
 function main() {
 	prompt.start();
-	console.log('Authenticating...');
-	Promise.all([knack.storage.get('email'), knack.storage.get('token')])
-		.then(values => {
-			if (typeof values[0] !== 'undefined' && typeof values[1] !== 'undefined') {
-				console.log(`Found stored user : ${chalk.cyan(values[0])}`);
-				console.log(`Found stored token: ${chalk.gray(values[1])}`);
+	console.log('Authenticating...')
+	knack.storage.getItem('user').then(user => {
+		if (!user) {
+			authenticateUser();
+		} else {
+			console.log(`Found stored user : ${chalk.cyan(user.identifier[0])} - ${user.id}`)
+			console.log(`Found stored token: ${chalk.gray(user.token[1])}`)
 
-				knack.getTaskList(values[1]).then(tasks => {
-					displayTaskTable(tasks);
-				});
-			} else {
-				authenticateUser();
-			}
-		});
+			knack.getTaskList(user.token).then(tasks => {
+				displayTaskTable(tasks);
+			})
+		}
+	})
 
 }
 
@@ -199,8 +198,8 @@ function promptUserTask(tasks) {
 	console.log(tasks);
 	prompt.start();
 	prompt.get(['index'], (err, result) => {
-		
-	});
+
+	})
 }
 
 function authenticateUser() {
