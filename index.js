@@ -58,6 +58,7 @@ function main() {
 
 function selectTask() {
 	knack.storage.getItem('selectedTask').then(selectedTask => {
+		console.log('selected task', selectedTask, !selectedTask)
 		if (selectedTask) {
 			inquirer.prompt([{
 				name: 'unselect',
@@ -82,8 +83,6 @@ function selectTask() {
 								knack.storage.set('selectedTask', selectedTask).then( () => {
 									manageTask()
 								});
-				
-								
 							});
 						} else {
 							console.log(chalk.yellow('Could not find stored tasks'));
@@ -93,10 +92,27 @@ function selectTask() {
 					return
 				}
 			})
+		} else if (!selectedTask) {
+			knack.storage.get('tasks').then(tasks => {
+				if (tasks) {
+					displayTaskTable(tasks);
+					// Prompt the user to choose a task
+					inquirer.prompt([{
+						name: 'id',
+						message: 'Select id: '
+					}]).then(answers => {
+						const selectedTask = tasks[answers.id];
+						console.log(chalk.magenta('Selected task:'), selectedTask.field_286, selectedTask.field_50);
+						knack.storage.set('selectedTask', selectedTask).then( () => {
+							manageTask()
+						});
+					});
+				} else {
+					console.log(chalk.yellow('Could not find stored tasks'));
+				}
+			});
 		}
-	})
-	// Check if there is a stored list of tasks
-	
+	})	
 }
 
 function manageTask() {
@@ -159,6 +175,11 @@ function manageTask() {
 };
 
 function displayTaskTable(tasks) {
+	knack.storage.getItem('selectedTask').then(selectedTask => {
+		if (selectedTask) {
+			console.log('Selected task is currently: ', selectedTask.field_286, selectedTask.field_50, selectedTask.field_5)
+		}
+	})
 	const table = new uniTable({
 		head: ['', 'Due', 'Task', 'Desc', 'bHrs', 'aHrs', 'Status'],
 		colWidths: [3, 12, 6, 40, 7, 7, 15]
