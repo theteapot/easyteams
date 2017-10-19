@@ -15,34 +15,27 @@ function storeLocal(key, value) {
 }
 
 function authenticateUser(email, password) {
-	return storage.get('email')
-		.then(storedEmail => {
-			if (email === storedEmail) {
-				console.log('Found user in storage')
-				return storage.get('token');
-			} else {
-				return rp.post(`https://api.knack.com/v1/applications/${applicationId}/session`, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json'
-					},
-					body: {
-						email: email,
-						password: password
-					},
-					json: true
-				})
-					.then(auth => {
-						storage.set('email', email).then(data => console.log('wrote email to storage'));
-						storage.set('token', auth.session.user.token).then(data => console.log('wrote token to storage'))
-						return auth.session.user.token
-					})
-					.catch(err => {
-						throw err
-					})
-			}
+	return rp.post(`https://api.knack.com/v1/applications/${applicationId}/session`, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		body: {
+			email: email,
+			password: password
+		},
+		json: true
+	})
+		.then(auth => {
+			storage.set('user', {
+				name: auth.session.user.values.name,
+				id: auth.session.user.profile_objects[0].entry_id,
+				token: auth.session.user.token
+			}).then( () => console.log('Stored user'))
 		})
-
+		.catch(err => {
+			throw err
+		})
 }
 
 function getTaskList(token) {
