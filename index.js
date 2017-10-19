@@ -28,6 +28,9 @@ ezt
 	.option('-g', 'Handle starting and stopping of the task', () => {
 		manageTask();
 	})
+	.option('-l', 'Get, list, and store tasks', () => {
+		userTasks();
+	})
 
 	.parse(process.argv);
 
@@ -170,18 +173,21 @@ function displayTaskTable(tasks) {
 	console.log(table.toString());
 }
 
-function userTasks(token) {
+function userTasks() {
 	console.log('Getting user tasks...');
 	const table = new uniTable({
 		head: ['', 'Due', 'Task', 'Desc', 'Proj', 'Mile', 'bHrs', 'aHrs', 'Status'],
 		colWidths: [4, 12, 6, 40, 30, 20, 7, 7, 10]
 	});
-	knack.getTaskList(token).then(tasks => {
-		for (let task of tasks) {
-			table.push(colorTask(tasks.indexOf(task), task));
-		}
-	});
-	return table;
+	knack.storage.getItem('user').then(user => {
+		knack.getTaskList(user.token).then(tasks => {
+			for (let task of tasks) {
+				table.push(colorTask(tasks.indexOf(task), task));
+			}
+			console.log(table.toString())
+		});
+	})
+	
 }
 
 function colorTask(index, task) {
@@ -223,7 +229,6 @@ function authenticateUser() {
 			.then(token => {
 				console.log(token);
 				console.log(chalk.black.bgGreen('Authentication successful'));
-				userTasks(token);
 			})
 			.catch(err => {
 				console.log(chalk.bgRed(err.message));

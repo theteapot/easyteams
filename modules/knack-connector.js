@@ -52,7 +52,7 @@ function getTaskList(token) {
 			const tasks = []
 			for (let record of res.records) {
 				const task = {}
-				console.log(record)
+				//console.log(record)
 				task.dueDate = record.field_4;
 				task.taskId = record.field_286;
 				task.description = record.field_50;
