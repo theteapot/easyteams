@@ -2,7 +2,7 @@
 const ezt = require('commander');
 const chalk = require('chalk');
 const prompt = require('prompt');
-const uniTable = require('cli-table2')
+const uniTable = require('cli-table2');
 const inquirer = require('inquirer');
 const moment = require('moment');
 
@@ -17,7 +17,7 @@ knack.storage.initSync({
 /* PROCESS ARGUMENTS */
 ezt
 	.option('-d', 'clears the storage of cached user and token', () => {
-		knack.storage.clear()
+		knack.storage.clear();
 	})
 	.option('-s', 'Prompts for a task selection', () => {
 		selectTask();
@@ -29,7 +29,7 @@ ezt
 		manageTask();
 	})
 
-	.parse(process.argv)
+	.parse(process.argv);
 
 /* SELECT A USERS TASK */
 
@@ -37,20 +37,20 @@ ezt
 /* MAIN PROCESS */
 function main() {
 	prompt.start();
-	console.log('Authenticating...')
+	console.log('Authenticating...');
 	Promise.all([knack.storage.get('email'), knack.storage.get('token')])
 		.then(values => {
 			if (typeof values[0] !== 'undefined' && typeof values[1] !== 'undefined') {
-				console.log(`Found stored user : ${chalk.cyan(values[0])}`)
-				console.log(`Found stored token: ${chalk.gray(values[1])}`)
+				console.log(`Found stored user : ${chalk.cyan(values[0])}`);
+				console.log(`Found stored token: ${chalk.gray(values[1])}`);
 
 				knack.getTaskList(values[1]).then(tasks => {
 					displayTaskTable(tasks);
-				})
+				});
 			} else {
 				authenticateUser();
 			}
-		})
+		});
 
 }
 
@@ -58,7 +58,7 @@ function selectTask() {
 	// Check if there is a stored list of tasks
 	knack.storage.get('tasks').then(tasks => {
 		if (tasks) {
-			displayTaskTable(tasks)
+			displayTaskTable(tasks);
 			// Prompt the user to choose a task
 			inquirer.prompt([{
 				name: 'id',
@@ -71,21 +71,21 @@ function selectTask() {
 				// If that task has no timesheet array, create it
 				knack.storage.getItem(selectedTask.taskId).then(times => {
 					if (!times) {
-						knack.storage.setItem(selectedTask.taskId, [])
+						knack.storage.setItem(selectedTask.taskId, []);
 					}
-				})
-			})
+				});
+			});
 		} else {
-			console.log(chalk.yellow('Could not find stored tasks'))
+			console.log(chalk.yellow('Could not find stored tasks'));
 		}
-	})
+	});
 }
 
 function manageTask() {
 	knack.storage.getItem('selectedTask').then(selectedTask => {
 		if (!selectedTask) {
 			console.log('No task to manage');
-			return
+			return;
 		}
 		// Retrieving necessary pieces from local storage
 		Promise.all([knack.storage.getItem('taskStatus'), knack.storage.getItem('token')])
@@ -93,7 +93,7 @@ function manageTask() {
 				const taskStatus = values[0];
 				const token = values[1];
 
-				console.log(taskStatus ? `Stopping ${selectedTask.taskId}` : `Starting ${selectedTask.taskId}`)
+				console.log(taskStatus ? `Stopping ${selectedTask.taskId}` : `Starting ${selectedTask.taskId}`);
 
 				// Toggle the status of the task
 				knack.storage.setItem('taskStatus', !taskStatus);
@@ -101,7 +101,7 @@ function manageTask() {
 				// Update the times associated with the task
 				knack.storage.getItem(selectedTask.taskId).then(times => {
 					// Print out previous times
-					console.log(chalk.cyan('Previous Times:'))
+					console.log(chalk.cyan('Previous Times:'));
 					for (let time of times) {
 						console.log(`${moment(time.start).format('D/M h:mm')} - ${moment(time.end).format('D/M h:mm')} : ${time.description}`);
 					}
@@ -109,7 +109,7 @@ function manageTask() {
 					// If starting, create new entry in task array with start time
 					if (!taskStatus) {
 						// Create time object
-						const time = { taskId: selectedTask.taskId, taskKnackId: selectedTask.knackId, start: new Date().getTime() }
+						const time = { taskId: selectedTask.taskId, taskKnackId: selectedTask.knackId, start: new Date().getTime() };
 
 						// Update local storage
 						times.push(time);
@@ -143,8 +143,8 @@ function manageTask() {
 							time.description = answers.description;
 
 							// Update local storage
-							times.push(time)
-							knack.storage.setItem(selectedTask.taskId, times)
+							times.push(time);
+							knack.storage.setItem(selectedTask.taskId, times);
 
 							// Update knack db
 							knack.updateTask(token, selectedTask.knackId, answers.complete ? 'Completed' : 'Pending')
@@ -152,55 +152,55 @@ function manageTask() {
 									if (res.record.field_5 === answers.complete ? 'Completed' : 'Pending') {
 										console.log(chalk.green('Successfully stopped'), selectedTask.taskId);
 									}
-								})
-						})
+								});
+						});
 					}
-				})
-			})
-	})
+				});
+			});
+	});
 }
 
 function displayTaskTable(tasks) {
 	const table = new uniTable({
 		head: ['id', 'Due', 'Task', 'Desc', 'Proj', 'Mile', 'bHrs', 'aHrs', 'Status', 'Knack'],
 		colWidths: [4, 12, 6, 40, 30, 20, 7, 7, 10, 10],
-	})
+	});
 	for (let task of tasks) {
-		table.push(colorTask(tasks.indexOf(task), task))
+		table.push(colorTask(tasks.indexOf(task), task));
 	}
 	console.log(table.toString());
 }
 
 function userTasks(token) {
-	console.log('Getting user tasks...')
+	console.log('Getting user tasks...');
 	const table = new uniTable({
 		head: ['', 'Due', 'Task', 'Desc', 'Proj', 'Mile', 'bHrs', 'aHrs', 'Status'],
 		colWidths: [4, 12, 6, 40, 30, 20, 7, 7, 10]
-	})
+	});
 	knack.getTaskList(token).then(tasks => {
 		for (let task of tasks) {
-			table.push(colorTask(tasks.indexOf(task), task))
+			table.push(colorTask(tasks.indexOf(task), task));
 		}
-	})
+	});
 	return table;
 }
 
 function colorTask(index, task) {
-	const taskArray = [index]
+	const taskArray = [index];
 	for (let prop of Object.keys(task)) {
 
-		taskArray.push(task[prop].trim())
+		taskArray.push(task[prop].trim());
 	}
-	return taskArray
+	return taskArray;
 
 }
 
 function promptUserTask(tasks) {
 	console.log(tasks);
-	prompt.start()
+	prompt.start();
 	prompt.get(['index'], (err, result) => {
 		
-	})
+	});
 }
 
 function authenticateUser() {
@@ -217,18 +217,18 @@ function authenticateUser() {
 				hidden: true
 			}
 		}
-	}
+	};
 	prompt.get(schema, (err, result) => {
-		console.log(`Authenticating as ${chalk.bold.cyan(result.email)}`)
+		console.log(`Authenticating as ${chalk.bold.cyan(result.email)}`);
 		knack.authenticateUser(result.email, result.password)
 			.then(token => {
 				console.log(token);
 				console.log(chalk.black.bgGreen('Authentication successful'));
-				userTasks(token)
+				userTasks(token);
 			})
 			.catch(err => {
 				console.log(chalk.bgRed(err.message));
 				authenticateUser();
-			})
-	})
+			});
+	});
 }
