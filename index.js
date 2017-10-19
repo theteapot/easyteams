@@ -65,8 +65,8 @@ function selectTask() {
 				message: 'Select id: '
 			}]).then(answers => {
 				const selectedTask = tasks[answers.id];
-				console.log(chalk.magenta('Selected task:'),selectedTask.taskId, selectedTask.description);
-				knack.storage.set('selectedTask', selectedTask);		
+				console.log(chalk.magenta('Selected task:'), selectedTask.taskId, selectedTask.description);
+				knack.storage.set('selectedTask', selectedTask);
 
 				// If that task has no timesheet array, create it
 				knack.storage.getItem(selectedTask.taskId).then(times => {
@@ -78,7 +78,7 @@ function selectTask() {
 		} else {
 			console.log(chalk.yellow('Could not find stored tasks'))
 		}
-	})	
+	})
 }
 
 function manageTask() {
@@ -89,74 +89,74 @@ function manageTask() {
 		}
 		// Retrieving necessary pieces from local storage
 		Promise.all([knack.storage.getItem('taskStatus'), knack.storage.getItem('token')])
-		.then(values => {
-			const taskStatus = values[0];
-			const token = values[1];
+			.then(values => {
+				const taskStatus = values[0];
+				const token = values[1];
 
-			console.log(taskStatus ? `Stopping ${selectedTask.taskId}` : `Starting ${selectedTask.taskId}`)
+				console.log(taskStatus ? `Stopping ${selectedTask.taskId}` : `Starting ${selectedTask.taskId}`)
 
-			// Toggle the status of the task
-			knack.storage.setItem('taskStatus', !taskStatus);
+				// Toggle the status of the task
+				knack.storage.setItem('taskStatus', !taskStatus);
 
-			// Update the times associated with the task
-			knack.storage.getItem(selectedTask.taskId).then(times => {
-				// Print out previous times
-				console.log(chalk.cyan('Previous Times:'))
-				for (let time of times) {
-					console.log(`${moment(time.start).format('D/M h:mm')} - ${moment(time.end).format('D/M h:mm')} : ${time.description}`);
-				}
+				// Update the times associated with the task
+				knack.storage.getItem(selectedTask.taskId).then(times => {
+					// Print out previous times
+					console.log(chalk.cyan('Previous Times:'))
+					for (let time of times) {
+						console.log(`${moment(time.start).format('D/M h:mm')} - ${moment(time.end).format('D/M h:mm')} : ${time.description}`);
+					}
 
-				// If starting, create new entry in task array with start time
-				if (!taskStatus) {
-					// Create time object
-					const time = {taskId: selectedTask.taskId, taskKnackId: selectedTask.knackId, start: new Date().getTime()}
-
-					// Update local storage
-					times.push(time);
-					knack.storage.setItem(selectedTask.taskId, times);
-
-					// Update knack database
-					knack.updateTask(token, selectedTask.knackId, 'In Progress')
-					.then(res => {
-						if (res.record.field_5 === 'In Progress') {
-							console.log(chalk.green('Successfully started'), selectedTask.taskId);
-						}
-					});
-
-				} 
-
-				// If stopping, append to time array
-				if (taskStatus) {
-					inquirer.prompt([{
-						name: 'complete',
-						type: 'confirm',
-						message: 'Complete?'
-					},
-					{
-						name: 'description',
-						type: 'input',
-						message: 'Description:'
-					}]).then(answers => {
-						// Update time object
-						const time = times.pop();
-						time.end = new Date().getTime();
-						time.description = answers.description;
+					// If starting, create new entry in task array with start time
+					if (!taskStatus) {
+						// Create time object
+						const time = { taskId: selectedTask.taskId, taskKnackId: selectedTask.knackId, start: new Date().getTime() }
 
 						// Update local storage
-						times.push(time)
-						knack.storage.setItem(selectedTask.taskId, times)
+						times.push(time);
+						knack.storage.setItem(selectedTask.taskId, times);
 
-						// Update knack db
-						knack.updateTask(token, selectedTask.knackId, answers.complete ? 'Completed' : 'Pending')
-						.then(res => {
-							if (res.record.field_5 === answers.complete ? 'Completed' : 'Pending') {
-								console.log(chalk.green('Successfully stopped'), selectedTask.taskId);
-							}
+						// Update knack database
+						knack.updateTask(token, selectedTask.knackId, 'In Progress')
+							.then(res => {
+								if (res.record.field_5 === 'In Progress') {
+									console.log(chalk.green('Successfully started'), selectedTask.taskId);
+								}
+							});
+
+					}
+
+					// If stopping, append to time array
+					if (taskStatus) {
+						inquirer.prompt([{
+							name: 'complete',
+							type: 'confirm',
+							message: 'Complete?'
+						},
+						{
+							name: 'description',
+							type: 'input',
+							message: 'Description:'
+						}]).then(answers => {
+							// Update time object
+							const time = times.pop();
+							time.end = new Date().getTime();
+							time.description = answers.description;
+
+							// Update local storage
+							times.push(time)
+							knack.storage.setItem(selectedTask.taskId, times)
+
+							// Update knack db
+							knack.updateTask(token, selectedTask.knackId, answers.complete ? 'Completed' : 'Pending')
+								.then(res => {
+									if (res.record.field_5 === answers.complete ? 'Completed' : 'Pending') {
+										console.log(chalk.green('Successfully stopped'), selectedTask.taskId);
+									}
+								})
 						})
-					})
-				}	
+					}
+				})
 			})
-		})
 	})
 }
 
@@ -199,7 +199,7 @@ function promptUserTask(tasks) {
 	console.log(tasks);
 	prompt.start()
 	prompt.get(['index'], (err, result) => {
-
+		
 	})
 }
 
@@ -208,7 +208,7 @@ function authenticateUser() {
 		properties: {
 			email: {
 				description: 'Email',
-				pattern: /\w*(\@easyforms\.co\.nz)/,
+				pattern: /\w*(@easyforms\.co\.nz)/,
 				message: 'Must be a valid easyforms email',
 				required: true
 			},
