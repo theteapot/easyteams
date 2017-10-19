@@ -42,7 +42,7 @@ function main() {
 		.then(values => {
 			if (typeof values[0] !== 'undefined' && typeof values[1] !== 'undefined') {
 				console.log(`Found stored user : ${chalk.cyan(values[0])}`)
-				console.log(`Found stored token: ${chalk.gray(values[1].slice(0, 20) + '...')}`)
+				console.log(`Found stored token: ${chalk.gray(values[1])}`)
 
 				knack.getTaskList(values[1]).then(tasks => {
 					displayTaskTable(tasks);
@@ -57,7 +57,6 @@ function main() {
 function selectTask() {
 	// Check if there is a stored list of tasks
 	knack.storage.get('tasks').then(tasks => {
-		console.log(tasks)
 		if (tasks) {
 			displayTaskTable(tasks)
 			// Prompt the user to choose a task
@@ -223,6 +222,7 @@ function authenticateUser() {
 		console.log(`Authenticating as ${chalk.bold.cyan(result.email)}`)
 		knack.authenticateUser(result.email, result.password)
 			.then(token => {
+				console.log(token);
 				console.log(chalk.black.bgGreen('Authentication successful'));
 				userTasks(token)
 			})
