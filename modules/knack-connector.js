@@ -8,7 +8,9 @@ module.exports = {
 	authenticateUser: authenticateUser,
 	getTaskList: getTaskList,
 	storage: storage,
-	updateTask: updateTask
+	updateTask: updateTask,
+	startTime: startTime,
+	stopTime: stopTime
 }
 
 function storeLocal(key, value) {
@@ -51,8 +53,14 @@ function getTaskList(token) {
 		.then(res => {
 			const tasks = []
 			for (let record of res.records) {
+				tasks.push(record)
+			}
+			storage.setItem('tasks', tasks)
+			return tasks
+			/*
+			for (let record of res.records) {
 				const task = {}
-				//console.log(record)
+				console.log(record)
 				task.dueDate = record.field_4;
 				task.taskId = record.field_286;
 				task.description = record.field_50;
@@ -65,7 +73,7 @@ function getTaskList(token) {
 				tasks.push(task);
 			}
 			storage.set('tasks', tasks)
-			return tasks;
+			return tasks;*/
 		})
 		.catch(err => {
 			throw err;
@@ -89,8 +97,28 @@ function updateTask(token, knackId, status) {
 	})
 }
 
-function createTime(token, taskKnackId, userKnackId, start) {
+function startTime(token, taskId, userId, projectId, milestoneId, start) {
 	return rp.post(`https://api.knack.com/v1/pages/scene_187/views/view_287/records`, {
+		method: 'POST',
+		headers: {
+			'X-Knack-Application-Id': applicationId,
+			'X-Knack-REST-API-KEY': 'knack',
+			'Authorization': token,
+			'Content-Type': 'application/json'
+		},
+		body: {
+			field_269: [userId],
+			field_276: [taskId],
+			field_336: [milestoneId],
+			field_268: [projectId],
+			field_266: start
+		},
+		json: true
+	})
+}
+
+function stopTime(token, timeId, stop, description) {
+	return rp.put(`https://api.knack.com/v1/pages/scene_187/views/view_287/records/${timeId}`, {
 		method: 'PUT',
 		headers: {
 			'X-Knack-Application-Id': applicationId,
@@ -99,10 +127,11 @@ function createTime(token, taskKnackId, userKnackId, start) {
 			'Content-Type': 'application/json'
 		},
 		body: {
-			field_5: status
+			field_349: stop,
+			field_267: description
 		},
 		json: true
-	})
+	});
 }
 //getTaskList('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNTk4N2VjMjc0YzcyNDA1ZTJmMGVkOGNlIiwiYXBwbGljYXRpb25faWQiOiI1NjhjNTFlN2YxNjc3ZWJkMThkNjg1ZjYiLCJpYXQiOjE1MDIwODAwNDV9._qbjfnrjMXK6bWZ3SrxfworGVNBfxmC3C2qx3lByakc')
 //putStartTime('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNTk4N2VjMjc0YzcyNDA1ZTJmMGVkOGNlIiwiYXBwbGljYXRpb25faWQiOiI1NjhjNTFlN2YxNjc3ZWJkMThkNjg1ZjYiLCJpYXQiOjE1MDIwODAwNDV9._qbjfnrjMXK6bWZ3SrxfworGVNBfxmC3C2qx3lByakc', )
