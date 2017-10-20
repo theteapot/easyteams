@@ -1,6 +1,6 @@
 {
   "name": "easytimes",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Easily inputting times for easyforms employeees",
   "main": "index.js",
   "scripts": {
