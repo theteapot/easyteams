@@ -60,7 +60,6 @@ function main() {
 
 function selectTask() {
 	knack.storage.getItem('selectedTask').then(selectedTask => {
-		console.log('Selected task', selectedTask, !selectedTask)
 		if (selectedTask) {
 			inquirer.prompt([{
 				name: 'unselect',
