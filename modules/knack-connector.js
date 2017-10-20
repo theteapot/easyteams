@@ -8,7 +8,9 @@ module.exports = {
 	authenticateUser: authenticateUser,
 	getTaskList: getTaskList,
 	storage: storage,
-	updateTask: updateTask
+	updateTask: updateTask,
+	startTime: startTime,
+	stopTime: stopTime
 }
 
 function storeLocal(key, value) {
@@ -28,8 +30,8 @@ function authenticateUser(email, password) {
 	})
 		.then(auth => {
 			storage.set('user', {
-				name: auth.session.user.values.name,
-				id: auth.session.user.profile_objects[0].entry_id,
+				name: `${auth.session.user.values.name.first} ${auth.session.user.values.name.last}`,
+				id: auth.session.user.id,
 				token: auth.session.user.token
 			}).then( () => console.log('Stored user'))
 		})
@@ -51,6 +53,12 @@ function getTaskList(token) {
 		.then(res => {
 			const tasks = []
 			for (let record of res.records) {
+				tasks.push(record)
+			}
+			storage.setItem('tasks', tasks)
+			return tasks
+			/*
+			for (let record of res.records) {
 				const task = {}
 				console.log(record)
 				task.dueDate = record.field_4;
@@ -65,7 +73,7 @@ function getTaskList(token) {
 				tasks.push(task);
 			}
 			storage.set('tasks', tasks)
-			return tasks;
+			return tasks;*/
 		})
 		.catch(err => {
 			throw err;
@@ -89,8 +97,29 @@ function updateTask(token, knackId, status) {
 	})
 }
 
-function createTime(token, taskKnackId, userKnackId, start) {
+function startTime(token, task, user, project, milestone) {
 	return rp.post(`https://api.knack.com/v1/pages/scene_187/views/view_287/records`, {
+		method: 'POST',
+		headers: {
+			'X-Knack-Application-Id': applicationId,
+			'X-Knack-REST-API-KEY': 'knack',
+			'Authorization': token,
+			'Content-Type': 'application/json'
+		},
+		body: {
+			field_269: user,
+			field_276: task,
+			field_336: milestone,
+			field_268: project,
+		},
+		json: true
+	})
+}
+<<<<<<< HEAD
+=======
+
+function stopTime(token, timeId, stop, description) {
+	return rp.put(`https://api.knack.com/v1/pages/scene_187/views/view_287/records/${timeId}`, {
 		method: 'PUT',
 		headers: {
 			'X-Knack-Application-Id': applicationId,
@@ -99,8 +128,12 @@ function createTime(token, taskKnackId, userKnackId, start) {
 			'Content-Type': 'application/json'
 		},
 		body: {
-			field_5: status
+			field_349: stop,
+			field_267: description
 		},
 		json: true
-	})
+	});
 }
+//getTaskList('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNTk4N2VjMjc0YzcyNDA1ZTJmMGVkOGNlIiwiYXBwbGljYXRpb25faWQiOiI1NjhjNTFlN2YxNjc3ZWJkMThkNjg1ZjYiLCJpYXQiOjE1MDIwODAwNDV9._qbjfnrjMXK6bWZ3SrxfworGVNBfxmC3C2qx3lByakc')
+//putStartTime('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNTk4N2VjMjc0YzcyNDA1ZTJmMGVkOGNlIiwiYXBwbGljYXRpb25faWQiOiI1NjhjNTFlN2YxNjc3ZWJkMThkNjg1ZjYiLCJpYXQiOjE1MDIwODAwNDV9._qbjfnrjMXK6bWZ3SrxfworGVNBfxmC3C2qx3lByakc', )
+>>>>>>> 23a68463b170fd388976ec77a6237e246e72d4bc
