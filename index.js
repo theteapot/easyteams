@@ -104,9 +104,7 @@ function selectTask() {
 					}]).then(answers => {
 						const selectedTask = tasks[answers.id];
 						console.log(chalk.magenta('Selected task:'), selectedTask.field_286, selectedTask.field_50);
-						knack.storage.set('selectedTask', selectedTask).then(() => {
-							manageTask()
-						});
+						knack.storage.set('selectedTask', selectedTask)
 					});
 				} else {
 					console.log(chalk.yellow('Could not find stored tasks'));
