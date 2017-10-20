@@ -81,7 +81,6 @@ function selectTask() {
 								const selectedTask = tasks[answers.id];
 								console.log(chalk.magenta('Selected task:'), selectedTask.field_286, selectedTask.field_50);
 								knack.storage.set('selectedTask', selectedTask).then( () => {
-									manageTask()
 								});
 							});
 						} else {
@@ -126,16 +125,20 @@ function manageTask() {
 			const taskStatus = selectedTask.field_5;
 			// STARTING TASK: If starting, create new entry in task array with start time
 			if (taskStatus !== 'In Progress') {
-				console.log(chalk.green('Starting task'), selectedTask.field_286)
+				console.log(chalk.green('Starting task'), selectedTask.field_286, user.name)
 				knack.storage.setItem('selectedTask', Object.assign(selectedTask, { field_5: 'In Progress' }));
 
 				// Update knack database
 				knack.updateTask(user.token, selectedTask.id, 'In Progress').then( res => {
 					console.log('Updated task status to: ', chalk.green.bold('In Progress'))
 				});
-				knack.startTime(user.token, selectedTask.id, user.id, selectedTask.field_109,
-					selectedTask.field_282, selectedTask.field, new Date())
+				knack.startTime(user.token, 
+					[{id: selectedTask.id, identifier: selectedTask.field_50}],
+					[{id: user.id, identifier: user.name}],
+					selectedTask.field_109_raw,
+					selectedTask.field_282_raw, new Date())
 					.then(res => {
+						console.log(JSON.stringify(res));
 						console.log('Time started: ', chalk.bold.magenta(moment().format('hh:mm')));
 						knack.storage.setItem('selectedTask', Object.assign(selectedTask, { timeId: res.record.id }))
 					})
