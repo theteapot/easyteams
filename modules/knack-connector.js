@@ -115,8 +115,6 @@ function startTime(token, task, user, project, milestone) {
 		json: true
 	})
 }
-<<<<<<< HEAD
-=======
 
 function stopTime(token, timeId, stop, description) {
 	return rp.put(`https://api.knack.com/v1/pages/scene_187/views/view_287/records/${timeId}`, {
@@ -134,6 +132,3 @@ function stopTime(token, timeId, stop, description) {
 		json: true
 	});
 }
-//getTaskList('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNTk4N2VjMjc0YzcyNDA1ZTJmMGVkOGNlIiwiYXBwbGljYXRpb25faWQiOiI1NjhjNTFlN2YxNjc3ZWJkMThkNjg1ZjYiLCJpYXQiOjE1MDIwODAwNDV9._qbjfnrjMXK6bWZ3SrxfworGVNBfxmC3C2qx3lByakc')
-//putStartTime('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNTk4N2VjMjc0YzcyNDA1ZTJmMGVkOGNlIiwiYXBwbGljYXRpb25faWQiOiI1NjhjNTFlN2YxNjc3ZWJkMThkNjg1ZjYiLCJpYXQiOjE1MDIwODAwNDV9._qbjfnrjMXK6bWZ3SrxfworGVNBfxmC3C2qx3lByakc', )
->>>>>>> 23a68463b170fd388976ec77a6237e246e72d4bc
