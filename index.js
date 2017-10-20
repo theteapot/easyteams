@@ -28,10 +28,12 @@ ezt
 	.option('-g', 'Handle starting and stopping of the task', () => {
 		manageTask();
 	})
+	.option('-t', 'Displays the currently selected and locally stored task', () => {
+		displaySelectedTask();
+	})
 	.option('-l', 'Get, list, and store tasks', () => {
 		userTasks();
 	})
-
 	.parse(process.argv);
 
 /* SELECT A USERS TASK */
@@ -58,7 +60,7 @@ function main() {
 
 function selectTask() {
 	knack.storage.getItem('selectedTask').then(selectedTask => {
-		console.log('selected task', selectedTask, !selectedTask)
+		console.log('Selected task', selectedTask, !selectedTask)
 		if (selectedTask) {
 			inquirer.prompt([{
 				name: 'unselect',
@@ -80,7 +82,7 @@ function selectTask() {
 							}]).then(answers => {
 								const selectedTask = tasks[answers.id];
 								console.log(chalk.magenta('Selected task:'), selectedTask.field_286, selectedTask.field_50);
-								knack.storage.set('selectedTask', selectedTask).then( () => {
+								knack.storage.set('selectedTask', selectedTask).then(() => {
 								});
 							});
 						} else {
@@ -102,7 +104,7 @@ function selectTask() {
 					}]).then(answers => {
 						const selectedTask = tasks[answers.id];
 						console.log(chalk.magenta('Selected task:'), selectedTask.field_286, selectedTask.field_50);
-						knack.storage.set('selectedTask', selectedTask).then( () => {
+						knack.storage.set('selectedTask', selectedTask).then(() => {
 							manageTask()
 						});
 					});
@@ -111,7 +113,7 @@ function selectTask() {
 				}
 			});
 		}
-	})	
+	})
 }
 
 function manageTask() {
@@ -129,14 +131,14 @@ function manageTask() {
 				knack.storage.setItem('selectedTask', Object.assign(selectedTask, { field_5: 'In Progress' }));
 
 				// Update knack database
-				knack.updateTask(user.token, selectedTask.id, 'In Progress').then( res => {
+				knack.updateTask(user.token, selectedTask.id, 'In Progress').then(res => {
 					console.log('Updated task status to: ', chalk.green.bold('In Progress'))
 				});
-				knack.startTime(user.token, 
-					[{id: selectedTask.id, identifier: selectedTask.field_50}],
-					[{id: user.id, identifier: user.name}],
+				knack.startTime(user.token,
+					[{ id: selectedTask.id, identifier: selectedTask.field_50 }],
+					[{ id: user.id, identifier: user.name }],
 					selectedTask.field_109_raw,
-					selectedTask.field_282_raw, new Date())
+					selectedTask.field_282_raw)
 					.then(res => {
 						console.log(JSON.stringify(res));
 						console.log('Time started: ', chalk.bold.magenta(moment().format('hh:mm')));
@@ -168,7 +170,7 @@ function manageTask() {
 								console.log('Updated task status to:', chalk.bold.red(answers.complete ? 'Completed' : 'Pending'));
 							}
 						});
-					knack.stopTime(user.token, selectedTask.timeId, moment().add(12, 'hours').format('ddd MMM DD YYYY hh:mm:ss'), answers.description).then(res => {
+					knack.stopTime(user.token, selectedTask.timeId, moment().add(13, 'hours').format('ddd MMM DD YYYY hh:mm:ss Z'), answers.description).then(res => {
 						console.log('Time stopped: ', chalk.bold.yellow(moment().format('hh:mm')))
 					})
 				});
@@ -212,7 +214,16 @@ function userTasks() {
 	})
 }
 
+function displaySelectedTask() {
+	const selectedTask = knack.storage.getItem('selectedTask').then(selectedTask => {
+		if (!selectedTask) {
+			console.log(`Task : Unselected`)
+		} else {
+			console.log(`${selectedTask.field_286} - ${selectedTask.field_50} : ${selectedTask.field_5}`)
+		}
+	})
 
+}
 
 function promptUserTask(tasks) {
 	console.log(tasks);

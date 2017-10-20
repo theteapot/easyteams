@@ -31,7 +31,7 @@ function authenticateUser(email, password) {
 		.then(auth => {
 			storage.set('user', {
 				name: `${auth.session.user.values.name.first} ${auth.session.user.values.name.last}`,
-				id: auth.session.user.profile_objects[0].entry_id,
+				id: auth.session.user.id,
 				token: auth.session.user.token
 			}).then( () => console.log('Stored user'))
 		})
@@ -97,7 +97,7 @@ function updateTask(token, knackId, status) {
 	})
 }
 
-function startTime(token, task, user, project, milestone, start) {
+function startTime(token, task, user, project, milestone) {
 	return rp.post(`https://api.knack.com/v1/pages/scene_187/views/view_287/records`, {
 		method: 'POST',
 		headers: {
@@ -111,7 +111,6 @@ function startTime(token, task, user, project, milestone, start) {
 			field_276: task,
 			field_336: milestone,
 			field_268: project,
-			field_266: start
 		},
 		json: true
 	})
